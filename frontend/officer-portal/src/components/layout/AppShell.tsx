@@ -1,0 +1,26 @@
+import { Bell, ChevronLeft, ChevronRight, ClipboardList, Command, LayoutDashboard, LogOut, Network, Search, Settings, ShieldCheck, University, BarChart3 } from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { initials, titleCase } from "@/lib/format";
+
+const nav = [
+  ["/dashboard", "Dashboard", LayoutDashboard], ["/cases", "Cases", ClipboardList], ["/institutions", "Institutions", University],
+  ["/coordination", "Coordination", Network], ["/analytics", "Analytics", BarChart3], ["/notifications", "Notifications", Bell],
+] as const;
+
+export function AppShell() {
+  const [collapsed, setCollapsed] = useState(false); const { user, signOut } = useAuth(); const navigate = useNavigate();
+  return <div className="min-h-screen bg-canvas">
+    <aside className={`fixed inset-y-0 left-0 z-30 hidden border-r border-[#243752] bg-navy text-white transition-all lg:flex lg:flex-col ${collapsed ? "w-[76px]" : "w-[250px]"}`}>
+      <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">{collapsed ? <ShieldCheck className="text-blue-300" /> : <><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue font-bold">C</div><div><div className="font-bold tracking-tight">CASELINK <span className="text-blue-300">AI</span></div><div className="text-[10px] uppercase tracking-[0.16em] text-slate-400">Officer operations</div></div></>}</div>
+      <nav className="flex-1 space-y-1 p-3">{nav.map(([path, label, Icon]) => <NavLink key={path} to={path} className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${isActive ? "bg-white/10 text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"} ${collapsed ? "justify-center" : ""}`} title={collapsed ? label : undefined}><Icon size={18} /><span className={collapsed ? "sr-only" : ""}>{label}</span></NavLink>)}</nav>
+      <div className="border-t border-white/10 p-3"><button onClick={() => { signOut(); navigate("/login"); }} className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${collapsed ? "justify-center" : ""}`}><LogOut size={18} /><span className={collapsed ? "sr-only" : ""}>Sign out</span></button></div>
+      <button onClick={() => setCollapsed(!collapsed)} className="absolute -right-3 top-24 flex h-7 w-7 items-center justify-center rounded-full border border-line bg-white text-navy shadow-sm">{collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}</button>
+    </aside>
+    <div className={`transition-all ${collapsed ? "lg:pl-[76px]" : "lg:pl-[250px]"}`}>
+      <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-line bg-white/95 px-5 backdrop-blur lg:px-8"><div className="flex items-center gap-3"><div className="relative hidden md:block"><Search className="absolute left-3 top-2.5 text-muted" size={17} /><input className="input w-72 pl-9" placeholder="Search cases or institutions" /></div><div className="hidden items-center gap-1 rounded-lg border border-line px-2 py-1.5 text-xs text-muted sm:flex"><Command size={13} /> K</div></div><div className="flex items-center gap-4"><button onClick={() => navigate("/notifications")} className="relative rounded-lg p-2 text-muted hover:bg-slate-50"><Bell size={19} /><span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-blue" /></button><div className="flex items-center gap-3 border-l border-line pl-4"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e7eeff] text-xs font-bold text-blue">{initials(user?.display_name || "Officer")}</div><div className="hidden text-right sm:block"><div className="text-sm font-semibold text-navy">{user?.display_name}</div><div className="text-xs text-muted">{titleCase(user?.role || "officer")}{user?.bureau_code ? ` · ${user.bureau_code}` : ""}</div></div></div></div></header>
+      <main className="mx-auto max-w-[1600px] p-5 lg:p-8"><Outlet /></main>
+    </div>
+  </div>;
+}

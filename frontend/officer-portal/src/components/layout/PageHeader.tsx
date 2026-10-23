@@ -1,0 +1,2 @@
+import type { ReactNode } from "react";
+export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) { return <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><div className="eyebrow mb-2">CASELINK AI / Operations</div><h1 className="text-2xl font-bold tracking-tight text-navy md:text-[28px]">{title}</h1>{subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}</div><div className="flex gap-2">{actions}</div></div>; }

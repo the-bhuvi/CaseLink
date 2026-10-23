@@ -1,0 +1,2 @@
+import { Link } from "react-router-dom";
+export function NotFound() { return <div className="flex min-h-[70vh] flex-col items-center justify-center text-center"><div className="eyebrow">404 / Page not found</div><h1 className="mt-3 text-3xl font-bold text-navy">This operational view does not exist.</h1><p className="mt-2 text-sm text-muted">Use the dashboard to return to the active workspace.</p><Link to="/dashboard" className="btn-primary mt-6">Back to dashboard</Link></div>; }
