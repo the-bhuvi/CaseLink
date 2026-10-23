@@ -5,14 +5,27 @@ from pydantic import BaseModel, Field
 
 
 class ComplaintCreate(BaseModel):
+    institution_id: UUID | None = None
     institution_name: str = Field(min_length=2, max_length=255)
     institution_permanent_id: str | None = None
     category: str = Field(min_length=2, max_length=100)
+    subcategory: str | None = Field(default=None, max_length=150)
+    specific_issue: str | None = Field(default=None, max_length=150)
+    state: str | None = Field(default=None, max_length=100)
+    district: str | None = Field(default=None, max_length=100)
     subject: str = Field(min_length=2, max_length=255)
     description: str = Field(min_length=10)
     source_channel: str = "web"
     complainant_name: str | None = None
     complainant_email: str | None = None
+
+
+class InstitutionVerificationRequest(BaseModel):
+    submitted_name: str = Field(min_length=2, max_length=255)
+    state: str | None = Field(default=None, max_length=100)
+    district: str | None = Field(default=None, max_length=100)
+    details: str = Field(min_length=10, max_length=2000)
+    contact_email: str | None = None
 
 
 class CaseActionCreate(BaseModel):
@@ -36,6 +49,10 @@ class CaseResponse(BaseModel):
     institution_name: str
     institution_permanent_id: str | None = None
     category: str
+    subcategory: str | None = None
+    specific_issue: str | None = None
+    state: str | None = None
+    district: str | None = None
     subject: str
     description: str | None = None
     assigned_bureau: str

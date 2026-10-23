@@ -17,7 +17,10 @@ def test_ready_requires_supabase_configuration():
     response = client.get("/ready")
     assert response.status_code in {200, 503}
     if response.status_code == 503:
-        assert response.json()["detail"]["code"] == "SUPABASE_NOT_CONFIGURED"
+        assert response.json()["detail"]["code"] in {
+            "SUPABASE_NOT_CONFIGURED",
+            "SUPABASE_SERVER_KEY_REQUIRED",
+        }
 
 
 def test_normalize_text_is_deterministic():

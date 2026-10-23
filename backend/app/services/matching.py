@@ -58,6 +58,8 @@ class MatchingService:
         same_institution: bool,
         same_category: bool,
         cross_bureau: bool,
+        same_subcategory: bool = False,
+        same_specific_issue: bool = False,
     ) -> MatchResult:
         self._load_model()
         left_vector = self._embedding(normalize_text(left))
@@ -75,7 +77,11 @@ class MatchingService:
             uncertainty.append("complaint categories differ")
         if cross_bureau:
             signals.append("cases are assigned to different bureaus")
-        score = min(1.0, max(0.0, similarity * 0.75 + (0.15 if same_institution else 0) + (0.05 if same_category else 0) + (0.05 if cross_bureau else 0)))
+        if same_subcategory:
+            signals.append("structured grievance subcategories match")
+        if same_specific_issue:
+            signals.append("specific issue selections match")
+        score = min(1.0, max(0.0, similarity * 0.7 + (0.15 if same_institution else 0) + (0.05 if same_category else 0) + (0.04 if same_subcategory else 0) + (0.03 if same_specific_issue else 0) + (0.03 if cross_bureau else 0)))
         return MatchResult(
             similarity,
             score,

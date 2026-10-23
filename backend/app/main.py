@@ -12,8 +12,9 @@ from supabase import Client
 
 from .config import settings
 from .database import get_supabase
-from .schemas import CaseActionCreate, CaseListResponse, CaseResponse, ComplaintCreate, RelationshipReview
+from .schemas import CaseActionCreate, CaseListResponse, CaseResponse, ComplaintCreate, InstitutionVerificationRequest, RelationshipReview
 from .services.matching import AIUnavailable, matching_service, normalize_text
+from .reference_data import GRIEVANCE_TAXONOMY
 
 app = FastAPI(
     title="CASELINK AI API",
@@ -86,6 +87,10 @@ def case_response(item: dict) -> CaseResponse:
         institution_name=institution.get("name") or item.get("submitted_institution_name", "Unknown institution"),
         institution_permanent_id=item.get("submitted_institution_id") or institution.get("aicte_permanent_id"),
         category=item["category"],
+        subcategory=item.get("subcategory"),
+        specific_issue=item.get("specific_issue"),
+        state=item.get("state") or institution.get("state"),
+        district=item.get("district") or institution.get("district"),
         subject=item["subject"],
         description=item.get("description"),
         assigned_bureau=item.get("assigned_bureau", "RB"),
@@ -182,17 +187,33 @@ def ready(client: Client = Depends(get_supabase)) -> dict:
 
 @app.post("/api/v1/public/complaints", response_model=CaseResponse, status_code=201)
 def create_complaint(payload: ComplaintCreate, client: Client = Depends(get_supabase)):
+    category = next((item for item in GRIEVANCE_TAXONOMY if item["label"] == payload.category), None)
+    subcategory = next((item for item in (category or {}).get("subcategories", []) if item["label"] == payload.subcategory), None)
+    if (payload.subcategory or payload.specific_issue) and (not category or not subcategory or payload.specific_issue not in subcategory["issues"]):
+        raise api_error("INVALID_GRIEVANCE_SELECTION", "Category, subcategory, and specific issue must be a valid combination.", 422)
     institution = None
-    if payload.institution_permanent_id:
+    if payload.institution_id:
+        institution = first_row(client, "institutions", "*", id=str(payload.institution_id))
+    if not institution and payload.institution_permanent_id:
         institution = first_row(client, "institutions", "*", aicte_permanent_id=payload.institution_permanent_id)
     if not institution:
-        institution = first_row(client, "institutions", "*", normalized_name=normalize_text(payload.institution_name))
+        raise api_error("INSTITUTION_VERIFICATION_REQUIRED", "Select a verified institution from the institution directory.", 422)
+    known_state = institution.get("state") not in {None, "", "Unknown"}
+    known_district = institution.get("district") not in {None, "", "Unknown"}
+    if payload.state and known_state and payload.state != institution.get("state"):
+        raise api_error("INSTITUTION_LOCATION_MISMATCH", "The selected state does not match the institution record.", 422)
+    if payload.district and known_district and payload.district != institution.get("district"):
+        raise api_error("INSTITUTION_LOCATION_MISMATCH", "The selected district does not match the institution record.", 422)
     item = write(client, "cases", {
         "reference": next_reference(client),
-        "institution_id": institution["id"] if institution else None,
-        "submitted_institution_name": payload.institution_name,
-        "submitted_institution_id": payload.institution_permanent_id,
+        "institution_id": institution["id"],
+        "submitted_institution_name": institution["name"],
+        "submitted_institution_id": institution.get("aicte_permanent_id"),
         "category": payload.category,
+        "subcategory": payload.subcategory,
+        "specific_issue": payload.specific_issue,
+        "state": institution.get("state") if known_state else payload.state,
+        "district": institution.get("district") if known_district else payload.district,
         "subject": payload.subject,
         "description": payload.description,
         "source_channel": payload.source_channel,
@@ -212,6 +233,19 @@ def create_complaint(payload: ComplaintCreate, client: Client = Depends(get_supa
         "visibility": "public",
     })
     return case_response(get_case(client, item["id"]))
+
+
+@app.post("/api/v1/public/institution-verification-requests", status_code=202)
+def create_institution_verification_request(payload: InstitutionVerificationRequest, client: Client = Depends(get_supabase)):
+    item = write(client, "institution_verification_requests", {
+        "submitted_name": payload.submitted_name,
+        "state": payload.state,
+        "district": payload.district,
+        "details": payload.details,
+        "contact_email": payload.contact_email,
+        "status": "pending",
+    })
+    return {"id": item.get("id"), "status": "pending", "message": "Your institution details were submitted for verification review."}
 
 
 @app.get("/api/v1/public/complaints/{reference}", response_model=CaseResponse)
@@ -242,7 +276,7 @@ def list_case_rows(client: Client, page: int, page_size: int, filters: dict[str,
         query = client.table("cases").select(case_select(), count="exact")
         for key, value in filters.items():
             if value and key == "search":
-                query = query.or_(f"reference.ilike.%{value}%,submitted_institution_name.ilike.%{value}%,submitted_institution_id.ilike.%{value}%")
+                query = query.or_(f"reference.ilike.%{value}%,submitted_institution_name.ilike.%{value}%,submitted_institution_id.ilike.%{value}%,state.ilike.%{value}%,district.ilike.%{value}%")
             elif value and key == "ageing" and value == "overdue":
                 query = query.lt("due_at", datetime.now(timezone.utc).isoformat()).neq("status", "disposed")
             elif value:
@@ -263,6 +297,10 @@ def list_cases(
     bureau: str | None = None,
     status: str | None = None,
     category: str | None = None,
+    subcategory: str | None = None,
+    specific_issue: str | None = None,
+    state: str | None = None,
+    district: str | None = None,
     priority: str | None = None,
     institution_id: str | None = None,
     ageing: str | None = None,
@@ -270,7 +308,7 @@ def list_cases(
 ):
     if status and status not in CASE_STATUSES:
         raise api_error("INVALID_STATUS", "Unsupported case status")
-    return list_case_rows(client, page, page_size, {"search": search, "assigned_bureau": bureau, "status": status, "category": category, "priority": priority, "institution_id": institution_id, "ageing": ageing})
+    return list_case_rows(client, page, page_size, {"search": search, "assigned_bureau": bureau, "status": status, "category": category, "subcategory": subcategory, "specific_issue": specific_issue, "state": state, "district": district, "priority": priority, "institution_id": institution_id, "ageing": ageing})
 
 
 @app.get("/api/v1/cases/{case_id}", response_model=CaseResponse)
@@ -330,14 +368,44 @@ def create_action(case_id: str, payload: CaseActionCreate, client: Client = Depe
 
 
 @app.get("/api/v1/institutions")
-def institutions(q: str | None = None, client: Client = Depends(get_supabase)):
+def institutions(q: str | None = None, state: str | None = None, district: str | None = None, page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100), client: Client = Depends(get_supabase)):
     try:
         query = client.table("institutions").select("*").order("name")
         if q:
-            query = query.or_(f"name.ilike.%{q}%,normalized_name.ilike.%{normalize_text(q)}%,aicte_permanent_id.ilike.%{q}%")
-        return query.limit(100).execute().data or []
+            term = q.strip().replace("%", "").replace(",", " ")
+            normalized_term = normalize_text(term)
+            query = query.or_(f"name.ilike.%{term}%,normalized_name.ilike.%{normalized_term}%,aicte_permanent_id.ilike.%{term}%")
+        if state:
+            query = query.eq("state", state)
+        if district:
+            query = query.eq("district", district)
+        return query.range((page - 1) * page_size, page * page_size - 1).execute().data or []
     except Exception as exc:
         raise api_error("SUPABASE_QUERY_FAILED", f"Could not list institutions: {exc}", 503)
+
+
+@app.get("/api/v1/reference/states")
+def reference_states(client: Client = Depends(get_supabase)):
+        try:
+            return client.table("administrative_states").select("id,name,kind,source_url,source_updated_at").order("name").execute().data or []
+        except Exception as exc:
+            raise api_error("SUPABASE_QUERY_FAILED", f"Could not list states: {exc}", 503)
+
+
+@app.get("/api/v1/reference/states/{state_id}/districts")
+def reference_districts(state_id: str, q: str | None = None, client: Client = Depends(get_supabase)):
+        try:
+            query = client.table("administrative_districts").select("id,state_id,name,source_url,source_updated_at").eq("state_id", state_id).order("name")
+            if q:
+                query = query.ilike("name", f"%{q}%")
+            return query.limit(250).execute().data or []
+        except Exception as exc:
+            raise api_error("SUPABASE_QUERY_FAILED", f"Could not list districts: {exc}", 503)
+
+
+@app.get("/api/v1/reference/grievance-taxonomy")
+def grievance_taxonomy() -> list[dict]:
+    return GRIEVANCE_TAXONOMY
 
 
 @app.get("/api/v1/institutions/{institution_id}")
@@ -446,6 +514,8 @@ def analyze_case_records(client: Client, source: dict, candidates: list[dict]) -
             same_institution=bool(source.get("institution_id") and source.get("institution_id") == candidate.get("institution_id")),
             same_category=source.get("category") == candidate.get("category"),
             cross_bureau=source.get("assigned_bureau") != candidate.get("assigned_bureau"),
+            same_subcategory=bool(source.get("subcategory") and source.get("subcategory") == candidate.get("subcategory")),
+            same_specific_issue=bool(source.get("specific_issue") and source.get("specific_issue") == candidate.get("specific_issue")),
         )
         if result.relationship_score < 0.65:
             continue

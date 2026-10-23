@@ -13,6 +13,10 @@ export interface CaseResponse {
   institution_name: string;
   institution_permanent_id: string | null;
   category: string;
+  subcategory?: string | null;
+  specific_issue?: string | null;
+  state?: string | null;
+  district?: string | null;
   subject: string;
   assigned_bureau: string;
   assigned_officer_id: string | null;
@@ -35,14 +39,44 @@ export interface CaseListResponse {
 }
 
 export interface ComplaintCreate {
+  institution_id: string;
   institution_name: string;
   institution_permanent_id?: string | null;
   category: string;
+  subcategory?: string | null;
+  specific_issue?: string | null;
+  state?: string | null;
+  district?: string | null;
   subject: string;
   description: string;
   source_channel?: string;
   complainant_name?: string | null;
   complainant_email?: string | null;
+}
+
+export interface Institution {
+  id: string;
+  aicte_permanent_id: string | null;
+  name: string;
+  state: string;
+  district: string;
+  institution_type: string;
+}
+
+export interface AdministrativeState {
+  id: string;
+  name: string;
+  kind: 'state' | 'union_territory';
+  source_url: string;
+  source_updated_at: string | null;
+}
+
+export interface AdministrativeDistrict {
+  id: string;
+  state_id: string;
+  name: string;
+  source_url: string;
+  source_updated_at: string | null;
 }
 
 export interface TimelineItem {

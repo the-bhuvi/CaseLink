@@ -1,4 +1,4 @@
-import { AttachmentUploadResponse, CaseListResponse, CaseResponse, ComplaintCreate, TimelineItem } from '@/types/complaint';
+import { AdministrativeDistrict, AdministrativeState, AttachmentUploadResponse, CaseListResponse, CaseResponse, ComplaintCreate, Institution, TimelineItem } from '@/types/complaint';
 import { HealthCheckResponse, ReadyCheckResponse } from '@/types/api';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '');
@@ -42,6 +42,16 @@ export const apiClient = {
   checkHealth: () => request<HealthCheckResponse>('/health'),
   checkReady: () => request<ReadyCheckResponse>('/ready'),
   submitComplaint: (payload: ComplaintCreate) => request<CaseResponse>('/api/v1/public/complaints', { method: 'POST', body: JSON.stringify(payload) }),
+  institutions: (q: string, state?: string, district?: string) => {
+    const params = new URLSearchParams({ q, page_size: '25' });
+    if (state) params.set('state', state);
+    if (district) params.set('district', district);
+    return request<Institution[]>(`/api/v1/institutions?${params}`);
+  },
+  states: () => request<AdministrativeState[]>('/api/v1/reference/states'),
+  districts: (stateId: string, q?: string) => request<AdministrativeDistrict[]>(`/api/v1/reference/states/${encodeURIComponent(stateId)}/districts${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  grievanceTaxonomy: () => request<Array<{ id: string; label: string; subcategories: Array<{ id: string; label: string; issues: string[] }> }>>('/api/v1/reference/grievance-taxonomy'),
+  requestInstitutionVerification: (payload: { submitted_name: string; state?: string; district?: string; details: string; contact_email?: string }) => request<{ status: string; message: string }>('/api/v1/public/institution-verification-requests', { method: 'POST', body: JSON.stringify(payload) }),
   trackComplaint: (reference: string) => request<CaseResponse>(`/api/v1/public/complaints/${encodeURIComponent(reference.trim())}`),
   getCaseById: (caseId: string) => request<CaseResponse>(`/api/v1/cases/${encodeURIComponent(caseId)}`),
   getTimeline: (caseId: string) => request<TimelineItem[]>(`/api/v1/public/complaints/${encodeURIComponent(caseId)}/timeline`),

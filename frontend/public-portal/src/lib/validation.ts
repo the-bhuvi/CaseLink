@@ -35,6 +35,7 @@ export const INSTITUTION_TYPES = [
 ] as const;
 
 export const step1InstitutionSchema = z.object({
+  institution_id: z.string().uuid('Please select a verified institution'),
   institution_name: z
     .string()
     .min(2, 'Institution name must be at least 2 characters')
@@ -44,14 +45,8 @@ export const step1InstitutionSchema = z.object({
     .max(100, 'Permanent ID must be less than 100 characters')
     .optional()
     .or(z.literal('')),
-  state: z
-    .string()
-    .min(1, 'Please select or enter the state'),
-  district: z
-    .string()
-    .max(100, 'District name must be less than 100 characters')
-    .optional()
-    .or(z.literal('')),
+  state: z.string().min(1, 'Please select a state or Union Territory'),
+  district: z.string().min(1, 'Please select a district').max(100, 'District name must be less than 100 characters'),
   institution_type: z
     .string()
     .optional()
@@ -62,6 +57,8 @@ export const step2DetailsSchema = z.object({
   category: z
     .string()
     .min(2, 'Please select a complaint category'),
+  subcategory: z.string().min(2, 'Please select a subcategory'),
+  specific_issue: z.string().min(2, 'Please select the specific issue'),
   subject: z
     .string()
     .min(3, 'Subject must be at least 3 characters')

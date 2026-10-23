@@ -6,6 +6,7 @@ create extension if not exists pgcrypto;
 create table if not exists institutions (
   id uuid primary key default gen_random_uuid(),
   aicte_permanent_id text unique,
+  source_application_no text unique,
   name text not null,
   normalized_name text not null,
   institution_type text not null default 'Unknown',
@@ -16,6 +17,35 @@ create table if not exists institutions (
 );
 create index if not exists institutions_normalized_name_idx on institutions (normalized_name);
 
+create table if not exists institution_verification_requests (
+  id uuid primary key default gen_random_uuid(),
+  submitted_name text not null,
+  state text,
+  district text,
+  details text not null,
+  contact_email text,
+  status text not null default 'pending' check (status in ('pending', 'reviewed', 'declined')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists administrative_states (
+  id text primary key,
+  name text not null unique,
+  kind text not null check (kind in ('state', 'union_territory')),
+  source_url text not null,
+  source_updated_at date
+);
+
+create table if not exists administrative_districts (
+  id text primary key,
+  state_id text not null references administrative_states(id),
+  name text not null,
+  source_url text not null,
+  source_updated_at date,
+  unique (state_id, name)
+);
+create index if not exists administrative_districts_state_idx on administrative_districts(state_id, name);
+
 create table if not exists cases (
   id uuid primary key default gen_random_uuid(),
   reference text not null unique,
@@ -23,6 +53,10 @@ create table if not exists cases (
   submitted_institution_name text not null,
   submitted_institution_id text,
   category text not null,
+  subcategory text,
+  specific_issue text,
+  state text,
+  district text,
   subject text not null,
   description text not null,
   source_channel text not null default 'web',
@@ -44,6 +78,7 @@ create index if not exists cases_reference_idx on cases(reference);
 create index if not exists cases_institution_idx on cases(institution_id);
 create index if not exists cases_status_bureau_idx on cases(status, assigned_bureau);
 create index if not exists cases_due_at_idx on cases(due_at);
+create index if not exists cases_structured_filters_idx on cases(category, subcategory, specific_issue, state, district);
 
 create or replace function caselink_set_updated_at() returns trigger as $$
 begin new.updated_at = now(); return new; end;
@@ -135,6 +170,7 @@ create table if not exists audit_events (
 -- Keep complaint tables private from anon/authenticated roles unless you explicitly
 -- add narrowly scoped policies for a future authenticated architecture.
 alter table institutions enable row level security;
+alter table institution_verification_requests enable row level security;
 alter table cases enable row level security;
 alter table case_actions enable row level security;
 alter table case_relationships enable row level security;

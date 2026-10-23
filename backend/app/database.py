@@ -19,6 +19,15 @@ def get_supabase() -> Client:
                 "fields": {},
             },
         )
+    if settings.supabase_service_role_key.startswith(("sb_publishable_", "sb_anon_")):
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "SUPABASE_SERVER_KEY_REQUIRED",
+                "message": "The backend is using a publishable/anon Supabase key. Set SUPABASE_SERVICE_ROLE_KEY to the server-side secret key from Supabase Project Settings > API.",
+                "fields": {},
+            },
+        )
     if _client is None:
         _client = create_client(settings.supabase_url, settings.supabase_service_role_key)
     return _client

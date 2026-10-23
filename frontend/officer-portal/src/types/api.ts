@@ -4,7 +4,7 @@ export type ReviewStatus = "pending" | "confirmed" | "rejected" | "needs_review"
 
 export interface CaseItem {
   id: string; reference: string; institution_id: string | null; institution_name: string; institution_permanent_id: string | null;
-  category: string; subject: string; assigned_bureau: string; assigned_officer_id: string | null; status: CaseStatus;
+  category: string; subcategory: string | null; specific_issue: string | null; state: string | null; district: string | null; subject: string; description?: string | null; assigned_bureau: string; assigned_officer_id: string | null; status: CaseStatus;
   priority: string; received_at: string; updated_at: string; due_at: string | null; closed_at: string | null; age_days: number; public_status: string;
 }
 export interface Page<T> { items: T[]; total: number; page: number; page_size: number; }
