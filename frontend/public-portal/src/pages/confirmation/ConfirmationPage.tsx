@@ -151,8 +151,8 @@ export const ConfirmationPage: React.FC = () => {
 
         {/* CTAs */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          {caseData?.id ? (
-            <Link to={`/my-complaints/${caseData.id}`} className="w-full sm:w-auto">
+          {reference ? (
+            <Link to={`/track?ref=${encodeURIComponent(reference)}`} className="w-full sm:w-auto">
               <Button
                 variant="primary"
                 size="md"
@@ -163,7 +163,7 @@ export const ConfirmationPage: React.FC = () => {
               </Button>
             </Link>
           ) : (
-            <Link to={`/track?ref=${encodeURIComponent(reference || '')}`} className="w-full sm:w-auto">
+            <Link to="/track" className="w-full sm:w-auto">
               <Button
                 variant="primary"
                 size="md"

@@ -1,6 +1,7 @@
-# CASELINK AI data model
+# CASELINK AI Supabase data model
 
-The normalized PostgreSQL model contains `users`, `institutions`, `cases`, `case_actions`, `case_assignments`, `case_relationships`, `attachments`, `notifications`, and `audit_events`. Every primary key is a UUID. Case references are human-readable (`CL-YYYY-NNNNN`). Timestamps are UTC. `case_relationships` stores ordered UUID pairs with a unique constraint, separate `semantic_similarity` and `relationship_score`, evidence JSON, model version, reviewer, reason, and review timestamp.
+`database/supabase_schema.sql` is the repeatable Supabase SQL Editor script. It creates `institutions`, `cases`, `case_actions`, `case_relationships`, `coordination_alerts`, `attachments`, `notifications`, and `audit_events`, with foreign keys, indexes, timestamp triggers, status checks, and canonical ordered relationship pairs.
 
-`RB` and `PGRC` are canonical demo bureaus. Seed data is explicitly synthetic. PostgreSQL migrations are managed by Alembic; `database/schema.sql` documents the extension and migration entrypoint.
+Cases retain original submitted institution text and identifiers while using `institution_id` for normalized identity. Relationships retain separate semantic similarity and relationship score fields, evidence JSON, uncertainty, model version, review decision, reason, reviewer, and review timestamp. Synthetic seed rows are marked `is_synthetic = true`.
 
+The private `caselink-private` Supabase Storage bucket is created by the SQL script. File metadata is stored in `attachments`; the backend performs uploads with the server-only service-role key and does not expose public file URLs.

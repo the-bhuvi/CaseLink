@@ -61,7 +61,7 @@ export const ComplaintCard: React.FC<ComplaintCardProps> = ({ complaint }) => {
         </div>
 
         <Link
-          to={`/my-complaints/${complaint.id}`}
+          to={`/track?ref=${encodeURIComponent(complaint.reference)}`}
           className="inline-flex items-center gap-1 font-semibold text-civic-blue hover:text-civic-blue-hover text-xs group-hover:translate-x-0.5 transition-transform"
         >
           <span>View Timeline</span>

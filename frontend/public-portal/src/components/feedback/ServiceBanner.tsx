@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient, isUsingMockFallback } from '@/lib/api-client';
-import { AlertTriangle, WifiOff, RefreshCw } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import { WifiOff, RefreshCw } from 'lucide-react';
 
 export const ServiceBanner: React.FC = () => {
   const { isError, refetch, isFetching } = useQuery({
@@ -11,23 +11,6 @@ export const ServiceBanner: React.FC = () => {
     staleTime: 30000,
     refetchInterval: 60000,
   });
-
-  if (isUsingMockFallback) {
-    return (
-      <div className="bg-amber-500 text-navy-950 px-4 py-2 text-xs font-medium border-b border-amber-600 flex items-center justify-between">
-        <div className="max-w-7xl mx-auto flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-navy-900 shrink-0" />
-          <span>
-            <strong>Local Prototype Mode:</strong> Backend server is currently offline or unreachable at{' '}
-            <code className="bg-amber-400 px-1 py-0.5 rounded text-[11px]">
-              {import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}
-            </code>
-            . Showing simulated fixture data.
-          </span>
-        </div>
-      </div>
-    );
-  }
 
   if (isError) {
     return (

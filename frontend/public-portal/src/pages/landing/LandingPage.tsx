@@ -138,7 +138,7 @@ export const LandingPage: React.FC = () => {
               Follow Available Status Updates
             </h4>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Access authenticated milestone timelines to verify that your complaint has been received, investigated, and brought to disposition.
+              Use your tracking reference to view public-safe milestone updates as the complaint moves through review.
             </p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export const LandingPage: React.FC = () => {
             </h3>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
               CASELINK AI strictly segregates public-facing milestone tracking from internal administrative deliberations.
-              Access to grievance information is protected by authenticated complainant credentials.
+              Public tracking is limited to a reference number and safe milestone information.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -165,7 +165,7 @@ export const LandingPage: React.FC = () => {
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   <strong className="text-white block font-semibold">Protected Access:</strong>
-                  Only you can view your filed complaint records and timeline events.
+                  Only public-safe timeline events are shown through reference-based tracking.
                 </div>
               </div>
               <div className="flex items-start gap-3">

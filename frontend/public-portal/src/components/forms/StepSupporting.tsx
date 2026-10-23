@@ -72,7 +72,7 @@ export const StepSupporting: React.FC<StepSupportingProps> = ({
             required
             placeholder="e.g. complainant@example.com"
             error={errors.complainant_email?.message as string}
-            helperText="Status notifications will be tied to this verified identity."
+            helperText="            Status notifications can be added when notification delivery is enabled."
             {...register('complainant_email')}
           />
         </div>

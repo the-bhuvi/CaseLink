@@ -31,9 +31,9 @@ const FAQS: FaqItem[] = [
   },
   {
     category: 'Tracking & Privacy',
-    question: 'Why does tracking require complainant authentication?',
+    question: 'What information is shown on the tracking page?',
     answer:
-      'Institutional grievances often involve sensitive personal, financial, or academic records. To prevent unauthorized parties from viewing another student or citizen\'s private complaint details, CASELINK AI enforces authenticated access so only the person who lodged the case can access its records.',
+      'Tracking uses the generated reference and returns only public-safe case milestones. Internal notes, relationship evidence, attachments, and other complainants\' information are not exposed.',
   },
   {
     category: 'Tracking & Privacy',

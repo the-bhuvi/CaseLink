@@ -1,10 +1,18 @@
 # CASELINK AI API contract
 
-Base URL is the FastAPI service; all application routes use `/api/v1`. OpenAPI is available at `/docs`; health checks are `/health` and `/api/v1/health/ready`. JSON uses ISO-8601 UTC timestamps and UUID strings. List endpoints use `{items,total,page,page_size}` and default to page 1, 20 items (maximum 100).
+The browser applications call the FastAPI service through `VITE_API_BASE_URL`; only the backend talks to Supabase. No application login is enabled in this demonstration. Administrative controls are visibly unauthenticated demo controls and must be protected by a future identity layer before production use.
 
-Authentication is `POST /api/v1/auth/demo-login` followed by `Authorization: Bearer <access_token>`. Demo identities are `complainant@demo.caselink`, `rb.officer@demo.caselink`, `pgrc.officer@demo.caselink`, `supervisor@demo.caselink`, and `admin@demo.caselink`. This is a short-lived demo token, not production identity verification.
+Base routes are `/health`, `/ready`, and `/api/v1`. Errors use `{ "detail": { "code", "message", "fields" } }`. Timestamps are ISO-8601 UTC strings; internal IDs are UUIDs and public references use `CL-YYYY-XXXXXX`.
 
-Canonical case statuses are `received`, `under_review`, `in_progress`, `awaiting_information`, `escalated`, `disposed`; roles are `complainant`, `officer`, `supervisor`, `admin`; overlap review statuses are `pending`, `confirmed`, `rejected`, `needs_review`. Standard errors are `{detail:{code,message,fields}}`.
+Core endpoints:
 
-The public routes create, track, list owned complaints, expose public timelines, and accept metadata-only demo attachments. Officer routes list/update/assign cases, manage institutions, actions, coordination relationships, dashboard metrics, analytics, notifications, and CSV reports. A complainant never receives internal actions, assignments, private attachments, or AI deliberation.
+- `POST /api/v1/public/complaints`, `GET /api/v1/public/complaints/{reference}`, and `GET /api/v1/public/complaints/{case_id}/timeline`
+- `GET /api/v1/cases`, `GET /api/v1/cases/{case_id}`, `PATCH /api/v1/cases/{case_id}`, and `POST /api/v1/cases/{case_id}/actions`
+- `GET /api/v1/institutions`, `GET /api/v1/institutions/{institution_id}`, and `GET /api/v1/institutions/{institution_id}/cases`
+- `GET /api/v1/cases/{case_id}/matches`, `POST /api/v1/cases/{case_id}/analyze`, and `POST /api/v1/coordination/detect`
+- `GET /api/v1/coordination/alerts`, `GET /api/v1/coordination/relationships`, and `POST /api/v1/coordination/relationships/{relationship_id}/review`
+- `GET /api/v1/dashboard/summary`, `GET /api/v1/analytics/overview`, the smaller analytics routes, notifications, and `GET /api/v1/reports/cases.csv`
 
+Case statuses are `received`, `under_review`, `in_progress`, `awaiting_information`, `escalated`, and `disposed`. Bureaus are `RB` and `PGRC`. Relationship review statuses are `pending`, `confirmed`, `rejected`, and `needs_review`.
+
+Public tracking returns only public case fields and actions. Internal action history, relationship evidence, audit data, and private attachment contents are not returned by public routes.

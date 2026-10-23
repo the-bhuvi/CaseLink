@@ -2,8 +2,6 @@ export type Role = "complainant" | "officer" | "supervisor" | "admin";
 export type CaseStatus = "received" | "under_review" | "in_progress" | "awaiting_information" | "escalated" | "disposed";
 export type ReviewStatus = "pending" | "confirmed" | "rejected" | "needs_review";
 
-export interface User { id: string; email: string; display_name: string; role: Role; bureau_code: string | null; }
-export interface TokenResponse { access_token: string; token_type: string; expires_in: number; user: User; }
 export interface CaseItem {
   id: string; reference: string; institution_id: string | null; institution_name: string; institution_permanent_id: string | null;
   category: string; subject: string; assigned_bureau: string; assigned_officer_id: string | null; status: CaseStatus;

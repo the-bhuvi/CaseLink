@@ -15,8 +15,6 @@ venv/
 
 # Local databases and runtime files
 *.db
-*.sqlite
-*.sqlite3
 
 # Node / Vite
 node_modules/
@@ -33,6 +31,11 @@ htmlcov/
 .coverage
 .coverage.*
 coverage/
+
+# Downloaded AI model artifacts
+.cache/
+.huggingface/
+*.safetensors
 
 # Editor and OS files
 .vscode/*

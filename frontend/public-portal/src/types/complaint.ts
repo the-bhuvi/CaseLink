@@ -41,6 +41,8 @@ export interface ComplaintCreate {
   subject: string;
   description: string;
   source_channel?: string;
+  complainant_name?: string | null;
+  complainant_email?: string | null;
 }
 
 export interface TimelineItem {

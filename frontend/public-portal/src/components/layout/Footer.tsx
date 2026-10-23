@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -55,11 +55,6 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/my-complaints" className="hover:text-white transition-colors">
-                  My Complaints Dashboard
-                </Link>
-              </li>
-              <li>
                 <Link to="/help" className="hover:text-white transition-colors">
                   Frequently Asked Questions
                 </Link>
@@ -73,15 +68,8 @@ export const Footer: React.FC = () => {
               Trust & Data Safety
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Access to grievance files is protected. Complainants only see public-safe timeline events and authenticated records. Internal review notes are strictly restricted.
+              Public tracking exposes only safe timeline events. Internal review notes and administrative coordination data remain restricted to the backend demonstration workflow.
             </p>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 text-xs text-civic-blue hover:text-blue-300 font-medium transition-colors"
-            >
-              Complainant Demo Sign-in
-              <ExternalLink className="w-3 h-3" />
-            </Link>
           </div>
         </div>
 
